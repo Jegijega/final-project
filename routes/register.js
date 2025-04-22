@@ -1,27 +1,38 @@
+
 const express = require('express');
-const {request, response} = require('express');
-const fs = require('fs');
 const router = express.Router();
+const fs = require('fs');
+
 const USERS_FILE = 'users.json';
-/* GET home page. */
-router.get('/', function (req, res, next) {
-    res.render('register', {title: 'Express'});
+
+router.get('/', function(req, res, next) {
+    res.render('register', { error: null });
 });
 
-router.post('/', function (req, res, next) {
+router.post('/', function(req, res, next) {
+    const { email, password, confirmPassword } = req.body;
 
-    const {email, password, confirmPassword} = req.body;
-    if (password !== confirmPassword) {
-        res.render('register', {error: 'Password don\'t match'});
+    console.log(email, password, confirmPassword);
+
+    if (confirmPassword !== password) {
+        res.render('register', { error: 'Passwords do not match' });
     }
 
-    const data = fs.readFileSync(USERS_FILE)
-    const users = JSON.parse(data)
-    users.push({email, password, confirmPassword});
-    fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2), function (err) {
-    })
+    let users = [];
 
-    res.render('register', {title: 'Express'});
+    if (fs.existsSync(USERS_FILE)) {
+        const data = fs.readFileSync(USERS_FILE);
+        users = JSON.parse(data);
+    }
+
+    const emailExists = users.find(user => user.email === email);
+    if (emailExists) {
+        return res.render('register', { error: 'Email already registered' });
+    }
+
+    users.push({ email, password });
+    fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
+    res.render('register', { error: null });
 });
 
 module.exports = router;

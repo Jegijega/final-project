@@ -1,9 +1,11 @@
 const express = require('express');
 const router = express.Router();
 
-/* GET home page. */
 router.get('/', function(req, res, next) {
-    res.render('login', { title: 'login' });
+    if (req.session.user) {
+        return res.redirect('/dashboard');
+    }
+    res.render('login', { error: null });
 });
 
 module.exports = router;
